@@ -1,0 +1,12 @@
+job	        MD,program,of,1-Dimension
+anaterm     nstep,atom,<x>,Pe,Ke,Te,ana1
+stat-xlabel Energy
+stat-ylabel Density,distribution
+stat-title  the,distributon,of,Quadratic,potenial
+stat-x1	    -1
+stat-x2	    1
+cct-xlabel  t,[a.u.]
+cct-ylabel  <x0xt>
+cct-title   correlation,function,of,Quadratic,potenial
+cct-x1	    0
+cct-x2	    15
