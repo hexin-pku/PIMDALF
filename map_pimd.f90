@@ -4,7 +4,7 @@
 
 
 !-- Module for MD simulations
-module md_pimd
+module map_pimd
 use base
 implicit none
     !-- finite & numerical
@@ -32,7 +32,7 @@ implicit none
     
     
     !-- IO settings
-    integer, parameter :: trj_unit = 10, ana_unit=11, frm_unit=12
+    integer, parameter :: trj_unit = 10, ana_unit=11, frm_unit=12, elc_unit=20
     integer :: md_start_flg = 1
     
     !-- MD varibles
@@ -187,8 +187,12 @@ end subroutine init_md_parameters
 
 subroutine calc_sys_fx()
 use MES_Models
+use map
 implicit none
-    call Mod_esti_dV(box_fx(:,:), box_x(:,:))
+    !-- MAP-PIMD real dynamics
+    call map_fx(box_fx, box_x)
+    !-- MES-PIMD for statistic
+    !call Mod_esti_dV(box_fx(:,:), box_x(:,:))
     !-- HO Model
     !box_fx = box_x
 end subroutine calc_sys_fx
@@ -225,7 +229,7 @@ implicit none
 end subroutine calc_sys_ana
 
 
-end module md_pimd
+end module map_pimd
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -236,14 +240,16 @@ end module md_pimd
 
 !-- initialization system at x=0
 subroutine init_sys_parameters(sta_file)
-use md_pimd
+use map_pimd
 use MES_Models
+use map
 implicit none
     character(*), intent(in) :: sta_file
     integer :: i, j
     real(8), dimension(8) :: linevals
     real(8), dimension(:), allocatable :: sys_m
     
+    !-- Interface to MES_Models
     !------------------------------------------
     !-- re-update md_nfree & mass from models--
     !------ Here take double ES model as example ----
@@ -257,6 +263,9 @@ implicit none
     !sys_m = 1.0
     !!-- Note what force should call
     !------------------------------------------
+    
+    !-- Interface to MAP
+    call init_map(nb=md_nbead, nc=4, ipop=2, istat=1)
     
     allocate(box_x(md_nfree, md_nbead))
     allocate(box_ks(md_nfree, md_nbead))
@@ -350,11 +359,12 @@ end subroutine init_sys_parameters
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 !-- the MD process with x,p,T propagators
 subroutine md_process(trj_file, ana_file)
-use md_pimd
+use map_pimd
+use map
 implicit none
     interface
         subroutine md_update_t(dt)
-        use md_pimd
+        use map_pimd
         implicit none
             real(8), intent(in) :: dt
             integer :: i, j
@@ -362,21 +372,21 @@ implicit none
         end subroutine md_update_t
         
         subroutine md_update_x(dt)
-        use md_pimd
+        use map_pimd
         implicit none
             real(8), intent(in) :: dt
             integer :: i, j
         end subroutine md_update_x
         
         subroutine md_update_p(dt)
-        use md_pimd
+        use map_pimd
         implicit none
             real(8), intent(in) :: dt
             integer :: i, j
         end subroutine md_update_p
         
         subroutine md_sample()
-        use md_pimd
+        use map_pimd
         implicit none
             integer :: i, j
         end subroutine
@@ -392,16 +402,19 @@ implicit none
     open(unit=ana_unit, file=ana_file, status='replace')
     !-- without header
     !write(ana_unit,*) 'nstep    ', 'anas'
+    open(unit=elc_unit, file='elec.dat', status='replace')
     
     !-- middle scheme
     call md_sample()
     do i = 1, md_nstep
         call md_update_p(md_dtime/2.0)
         call md_update_x(md_dtime/2.0)
-        call md_update_t(md_dtime)
+        !call md_update_t(md_dtime)
         call md_update_x(md_dtime/2.0)
         call md_update_p(md_dtime/2.0)
         md_npass = md_npass + 1
+        !-- ADD MAP
+        call map_stat_pop()
         if(mod(md_npass, md_sstep) .eq. 0) then
             call md_sample()
         endif
@@ -423,7 +436,8 @@ end subroutine md_process
 
 !-- sampling the trajectory and statistic quantities
 subroutine md_sample()
-use md_pimd
+use map_pimd
+use map
 implicit none
     integer :: i,j
     !-- write analysis file (contain averaged position, all kinds of energy, some other thermodynamics properties)
@@ -433,6 +447,9 @@ implicit none
             write (trj_unit,*) md_npass, j, i, box_ks(j,i), box_p(j,i), box_x(j,i), box_fks(j,i), box_fx(j,i)
         enddo
     enddo
+    do i=1, md_nbead
+        write (elc_unit,*) md_npass, i, map_pop(i,:), map_c(i,:,:)
+    enddo
 end subroutine md_sample
 
 
@@ -441,7 +458,8 @@ end subroutine md_sample
 !-- flag = 2 'ads' : andersen thermostat
 !-- flag = 3 'nhc' : nose-hoover chain
 subroutine md_update_t(dt)
-use md_pimd
+use map_pimd
+use map
 implicit none
     real(8), intent(in) :: dt
     integer :: i, j
@@ -478,7 +496,8 @@ end subroutine md_update_t
 
 !-- an update of position
 subroutine md_update_x(dt)
-use md_pimd
+use map_pimd
+use map
 implicit none
     real(8), intent(in) :: dt
     integer :: i, j
@@ -488,12 +507,13 @@ implicit none
             box_ks(j,i) = box_ks(j,i) + box_p(j,i) * dt / ( box_m(j,i) )
         enddo
     enddo
+    call map_update_x(box_x, dt)
     !-- relative updating
     do j=1, md_nfree
         call ks2x(box_x(j,:), box_ks(j,:), md_nbead)
     enddo
     call calc_sys_fx()
-    call calc_sys_ana()
+    !call calc_sys_ana()
     do j=1, md_nfree
         call fx2fks(box_fks(j,:), box_fx(j,:), md_nbead)
     enddo
@@ -502,7 +522,8 @@ end subroutine md_update_x
 
 !-- an update of momentum
 subroutine md_update_p(dt)
-use md_pimd
+use map_pimd
+use map
 implicit none
     real(8), intent(in) :: dt
     integer :: i, j
@@ -513,17 +534,18 @@ implicit none
                 - box_m(j,i) * md_bf2 * box_ks(j,i) * dt
         enddo
     enddo
+    call map_update_p(box_x, dt)
 end subroutine md_update_p
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 !-- main pragram
 program main
-use md_pimd
+use map_pimd
 implicit none
     interface
         subroutine init_sys_parameters(sta_file)
-        use md_pimd
+        use map_pimd
         implicit none
             character(*), intent(in) :: sta_file
             integer :: i, j
@@ -531,7 +553,7 @@ implicit none
         end subroutine init_sys_parameters
         
         subroutine md_process( trj_file, ana_file )
-        use md_pimd
+        use map_pimd
         implicit none
             character(*), intent(in) :: trj_file, ana_file
             integer :: i, j

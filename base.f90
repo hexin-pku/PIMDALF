@@ -18,7 +18,7 @@ implicit none
     real(8), parameter :: au_a0 = 5.2917721092E-11
     real(8), parameter :: au_eh = 4.35974417E-18
     real(8), parameter :: au_t = 2.418884326505E-17
-    real(8), parameter :: au_temp = 3.1577464E+5
+    real(8), parameter :: au_temp = 3.157746455E+5
     real(8), parameter :: au_kb = 1.00000000000
     real(8), parameter :: au_beta = 3.166815367E-6
     real(8), parameter :: wn_2_hetree = 219474.6313702

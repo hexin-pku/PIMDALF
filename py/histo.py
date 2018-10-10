@@ -17,24 +17,24 @@ clmn=int(sys.argv[2]) # the column to plot
 # load configuration file
 icwd=os.getcwd()
 print('current working directory is %s\n'%icwd)
-if os.path.is_file('./put.rc'):
+if os.path.isfile('./put.rc'):
     myinfo = lf.Load('put.rc')
 else:
     print('Warning: put.rc is need in current dir!')
     exit()
-if os.path.is_file('./histo.rc'):
-    myinfo.add('histo.rc')
+if os.path.isfile('./histo.rc'):
+    myinfo.Add('histo.rc')
 else:
     print('Warning: histo.rc is need in current dir!')
     exit()
-if os.path.is_file('./info.now'):
-    myinfo.add('info.now')
+if os.path.isfile('./info.now'):
+    myinfo.Add('info.now')
 else:
     print('Warning: info.now is need in current dir!')
     exit()
 
 # read the data file
-if not os.path.is_file(fflg):
+if not os.path.isfile(fflg):
     print("%s doesn't exist!")
     exit()
 a=pd.read_csv(fflg,sep='\s+',header=None)
@@ -42,7 +42,7 @@ name='Nan'
 if not lf.is_number(a.values[0,0]):
     a=pd.read_csv(fflg,sep='\s+')
     name=str(a.columns.values[clmn])
-fflg=(fflg.spilt('.',1))[0]
+fflg=(fflg.split('.',1))[0]
 
 # processing the data, histogram
 mtx=a.values.T
@@ -55,7 +55,12 @@ else:
     pass
 y=y[0]
 
-x1=int(myinfo.args['histo-x1']);x2=int(myinfo.args['histo-x2']);
+if 'histo-x1' in myinfo.args and 'histo-x1' in myinfo.args :
+    x1=int(myinfo.args['histo-x1'])
+    x2=int(myinfo.args['histo-x2'])
+else :
+    x1 = y.min()
+    x2 = y.max()
 plt.hist(y,bins=200,normed=True,range=(x1,x2), histtype='step')
 y1,y2=plt.ylim()
 plt.ylabel(myinfo.args['histo-ylabel'])
@@ -67,7 +72,7 @@ plt.axvline(x=ymean,color='r',ls='--')
 print('the mean value of '+name+'\n', ymean)
 
 txt = plt.text(x1+0.75*(x2-x1),0.7*(y2-y1),
-'temp=%.2e\n'%myinfo.args['temp']
+'beta=%.2e\n'%myinfo.args['beta']
 +'bead=%d\n'%myinfo.args['nbead']
 +'dt=%.1e\n'%myinfo.args['dtime']
 #+'gamma=%.1e\n'%myinfo.args['gammaAD']

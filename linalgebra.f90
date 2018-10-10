@@ -32,8 +32,9 @@ contains
         endif
         M=0.0
         do i=1,msize
-            M(i,i)=val
+            M(i,i) = val
         enddo
+        !-- print *, "test on la : eye", M
     end function lin_eye
     
     function lin_dot(X, Y) result(M)
@@ -110,6 +111,21 @@ contains
             enddo
         endif
     end function lin_offdiag
+    
+    function lin_expdiag(X) result(M)
+    implicit none
+        real(8), dimension(:,:), intent(in) :: X
+        real(8), dimension(size(X,dim=1),size(X,dim=2)) :: M
+        integer :: i
+        if( size(X,dim=1) .ne. size(X,dim=2) )  then
+            call log_message('E','diag error in linagebra')
+        else
+            M = 0.0
+            do i=1,size(X,dim=1)
+                M(i,i) = dexp(X(i,i))
+            enddo
+        endif
+    end function lin_expdiag
     
     function lin_cumul(P) result(M)
     implicit none
@@ -246,20 +262,20 @@ contains
     
 end module linalgebra
 
-program testla
-use linalgebra
-implicit none
-    real(8), dimension(8,8) :: X,Y
-    real(8), dimension(8) :: Z
-    integer :: i,j
-    X = reshape((/ ((1/real(i+j),i=1,8), j=1,8) /), (/ 8, 8 /))
-    Z = (/(real(i),i=1,8)/)
+!program testla
+!use linalgebra
+!implicit none
+!    real(8), dimension(8,8) :: X,Y
+!    real(8), dimension(8) :: Z
+!    integer :: i,j
+!    X = reshape((/ ((1/real(i+j),i=1,8), j=1,8) /), (/ 8, 8 /))
+!    Z = (/(real(i),i=1,8)/)
 
-    print *, X
-    print *, ' ### '
-    Y = lin_random_norm(8,8)
-    print *, Y
-end program testla
+!    print *, X
+!    print *, ' ### '
+!    Y = lin_random_norm(8,8)
+!    print *, Y
+!end program testla
 
 
 

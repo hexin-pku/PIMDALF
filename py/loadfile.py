@@ -30,7 +30,7 @@ class Load:
     args={}
     def __init__(self,filename):
         a=pd.read_csv(filename,sep='\s+',header=None)
-        print(a)
+        #print(a)
         for two in a.values:
             if(is_number(two[1])):
                 if( float(two[1])%1==0.0 and not is_integer(two[1])):
@@ -39,9 +39,10 @@ class Load:
                     self.args[two[0]] = float(two[1])
             else:
                 self.args[two[0]] = two[1].replace(',',' ')
+                
     def Add(self,filename):
         a=pd.read_csv(filename,sep='\s+',header=None)
-        print(a)
+        #print(a)
         for two in a.values:
             if two[0] not in self.args:
                 if(is_number(two[1])):
@@ -52,5 +53,11 @@ class Load:
                 else:
                 	# original blankspace should written is comma
                     self.args[two[0]] = two[1].replace(',',' ')
+    def Show(self):
+        for i in self.args:
+            if( float(self.args[i])%1==0.0 and not is_integer(self.args[i])):
+                print("%s   %d"%('{:<15}'.format(i),self.args[i]))
+            else:
+                print("%s   %f"%('{:<15}'.format(i),self.args[i]))
     
         

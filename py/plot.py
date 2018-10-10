@@ -6,6 +6,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import sys
 import loadfile as lf
+import os
 
 # get arguments from terminal
 narg=len(sys.argv)-1
@@ -13,13 +14,13 @@ fflg=str(sys.argv[1]) # the filename to plot
 clmn=int(sys.argv[2]) # the column to plot
 
 # load the configuration file
-if os.path.is_file('./put.rc'):
+if os.path.isfile('./put.rc'):
     myinfo = lf.Load('put.rc')
 else:
     print('Warning: put.rc is need in current dir!')
     exit()
-if os.path.is_file('./plot.rc'):
-    myinfo.add('plot.rc')
+if os.path.isfile('./plot.rc'):
+    myinfo.Add('plot.rc')
 else:
     print('Warning: plot.rc is need in current dir!')
     exit()
@@ -30,7 +31,7 @@ name='Nan'
 if not lf.is_number(a.values[0,0]):
     a=pd.read_csv(fflg,sep='\s+')
     name=str(a.columns.values[clmn])
-fflg=(fflg.spilt('.',1))[0]
+fflg=(fflg.split('.',1))[0]
 
 # processing
 xs=a.values[:,0]*myinfo.args['dtime']
