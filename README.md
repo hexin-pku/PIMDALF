@@ -8,9 +8,9 @@ mespimd.adia.run: is the adiabatic version for mes-pimd
 
 ## Usage  
 ```
-    mespimd.xxx.run -p parameter\_file \
-    -s [0|1|e|r|f]  
-    -f restart\_configuration\_file
+    mespimd.xxx.run -p parameter_file \
+    -s [0|1|e|r|f]  \
+    -f restart_configuration_file \
     -o output\_name
 ```
 
@@ -22,7 +22,7 @@ the parameter file with format like
     4511.066    16
     # thermo_gamma
     0.001
-    # scheme\_flg, thermo\_flg
+    # scheme_flg, thermo_flg
     0   1
 ```
 
@@ -34,7 +34,7 @@ can give statistics result of the analyzation files.
 Thank Prof. Liu & Xinzijian Liu and other fellows 
 
 # to do  
-[ ] Add more thermostat (NHC)
-[ ] Add normal mode transform
-[ ] Non-adiabatic calculation
+[ ] Add more thermostat (NHC)  
+[ ] Add normal mode transform  
+[ ] Non-adiabatic calculation  
 [ ] Else  
