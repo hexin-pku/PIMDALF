@@ -1,6 +1,5 @@
 module linalgebra
-use const
-use random
+use base
 implicit none
 contains
     function lin_ones(rows, cols) result(M)
@@ -43,7 +42,7 @@ contains
         real(8), dimension(:,:), intent(in) :: X,Y
         real(8), dimension(size(X,dim=1), size(Y,dim=2)) :: M
         if( size(X,dim=2) .ne. size(Y,dim=1) )  then
-            stop "matmul error in linagebra"
+            call log_message('E','matmul error in linagebra')
         else
             M = matmul(X,Y)
         endif
@@ -55,7 +54,7 @@ contains
         real(8), dimension(size(X),size(Y)) :: M
         integer :: i,j
         if( size(X).ne. size(Y)) then
-            stop "matmul error in linagebra"
+            call log_message('E','matmul error in linagebra')
         else
             do i=1,size(X)
                 do j=1,size(Y)
@@ -71,7 +70,7 @@ contains
         real(8) :: Z
         integer :: i
         if( size(X,dim=1) .ne. size(X,dim=2) )  then
-            stop "matmul error in linagebra"
+            call log_message('E','trace error in linagebra')
         else
             Z = 0.0
             do i=1,size(X,dim=1)
@@ -80,28 +79,13 @@ contains
         endif
     end function lin_trace
     
-    function lin_eps(X, eps) result(M)
-    implicit none
-        real(8), dimension(:,:) :: X
-        real(8), intent(in) :: eps
-        real(8), dimension(size(X,dim=1),size(X,dim=2)) :: M
-        integer :: i,j
-        M=0.0
-        do i=1,size(X,dim=1)
-            do j=1,size(X,dim=2)
-                if(abs(X(i,j)) > eps) M(i,j) = X(i,j)
-            enddo
-        enddo
-        !-- print *, "test on la : eye", M
-    end function lin_eps
-    
     function lin_diag(X) result(M)
     implicit none
         real(8), dimension(:,:), intent(in) :: X
         real(8), dimension(size(X,dim=1),size(X,dim=2)) :: M
         integer :: i
         if( size(X,dim=1) .ne. size(X,dim=2) )  then
-            stop "matmul error in linagebra"
+            call log_message('E','diag error in linagebra')
         else
             M = 0.0
             do i=1,size(X,dim=1)
@@ -110,24 +94,13 @@ contains
         endif
     end function lin_diag
     
-    function lin_darray(X) result(M)
-    implicit none
-        real(8), dimension(:), intent(in) :: X
-        real(8), dimension(size(X,dim=1),size(X,dim=1)) :: M
-        integer :: i
-        M = 0.0
-        do i=1,size(X,dim=1)
-            M(i,i) = X(i)
-        enddo
-    end function lin_darray
-    
     function lin_offdiag(X) result(M)
     implicit none
         real(8), dimension(:,:), intent(in) :: X
         real(8), dimension(size(X,dim=1),size(X,dim=2)) :: M
         integer :: i,j
         if( size(X,dim=1) .ne. size(X,dim=2) )  then
-            stop "matmul error in linagebra"
+            call log_message('E','diag error in linagebra')
         else
             M = 0.0
             do i=1,size(X,dim=1)
@@ -145,7 +118,7 @@ contains
         real(8), dimension(size(X,dim=1),size(X,dim=2)) :: M
         integer :: i
         if( size(X,dim=1) .ne. size(X,dim=2) )  then
-            stop "matmul error in linagebra"
+            call log_message('E','diag error in linagebra')
         else
             M = 0.0
             do i=1,size(X,dim=1)
@@ -173,18 +146,6 @@ contains
             M = matmul(X,M)
         enddo
     end function lin_op_power
-    
-    function lin_powerdiag(X, n) result(M)
-    implicit none
-        real(8), dimension(:,:), intent(in) :: X
-        integer, intent(in) :: n
-        integer :: k
-        real(8), dimension(size(X,dim=1),size(X,dim=2)) :: M
-        M = 0.0
-        do k=1,size(X,dim=1)
-            M(k,k) = X(k,k) ** n
-        enddo
-    end function lin_powerdiag
     
     function lin_op_exp(X, prec) result(M)
         real(8), dimension(:,:), intent(in) :: X
@@ -287,50 +248,34 @@ contains
         integer, intent(in) :: rows, cols
         real(8), dimension(rows,cols) :: M
         integer :: i,j
-        real(8) :: irand_norm
+        real(8) :: irand_norm, irand_u
         do i=1,rows
             do j=1,cols
-                call random_normal(irand_norm)
+                call random_norm(irand_norm, irand_u, 1._8)
                 M(i,j) = irand_norm
             enddo
         enddo
     end function lin_random_norm
-    
-    subroutine lin_ev(Es, Vs, A)
-        real(8), dimension(:,:), intent(in) :: A
-        real(8), dimension(size(A,1),size(A,2)), intent(out) :: Vs
-        real(8), dimension(size(A,1)), intent(out) :: Es
-        integer :: LDA, n, lwork, info
-        integer, parameter :: lwmax = 1000
-        real(8) :: work( lwmax )
-        ! External procedures defined in LAPACK
-        external DSYEV
-        ! Store A
-        Vs = A
-        n = size(A,1)
-        LDA = n
-        
-        ! Query the optimal workspace.
-        lwork = -1
-        CALL DSYEV( 'Vectors', 'Upper', n, Vs, LDA, Es, work, lwork, info )
-        LWORK = MIN( LWMAX, INT( WORK( 1 ) ) )
-        
-        ! Solve eigenproblem.
-        CALL DSYEV( 'Vectors', 'Upper', n, vs, LDA, Es, work, lwork, info )
-
-        ! Check for convergence.
-        if( info .GT. 0 ) then
-            print *, 'The algorithm failed to compute eigenvalues.'
-            stop
-        endif
-    end subroutine lin_ev
 
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 !-- subroutines
     
 end module linalgebra
 
+!program testla
+!use linalgebra
+!implicit none
+!    real(8), dimension(8,8) :: X,Y
+!    real(8), dimension(8) :: Z
+!    integer :: i,j
+!    X = reshape((/ ((1/real(i+j),i=1,8), j=1,8) /), (/ 8, 8 /))
+!    Z = (/(real(i),i=1,8)/)
 
+!    print *, X
+!    print *, ' ### '
+!    Y = lin_random_norm(8,8)
+!    print *, Y
+!end program testla
 
 
 

@@ -209,6 +209,7 @@ contains
         esval = lin_trace(Y) / update_pfd
         !-- save data pff, its important in other properties evaluation ------------------------------ [IMPORTANT]
         update_pff = esval
+
     end subroutine Mod_esti_PFF
     
     !-- The evaluation method of V can be generalize to all nuclear properties --- relating all of frames of R
@@ -278,8 +279,9 @@ contains
                 dVnd = Mod_dVnd(:,frame,:,:)
             endif
             do j=1,size(R)  !---------------------------------------------------------------------------------------------------------------- BUGS
-                OpR(j,:,:) = -0.5*betap*dVnd(j,:,:)*lin_expdiag(-0.5*betap*Vd)  + &
-                            ( lin_eye(vdim) - 0.5*betap*Vnd)*lin_expdiag(-0.5*betap* Vd(:,:)) * (-0.5*betap* dVd(j,:,:))
+                OpR(j,:,:) = -0.5*betap*matmul(dVnd(j,:,:), lin_expdiag(-0.5*betap*Vd) ) + &
+                            matmul( ( lin_eye(vdim) - 0.5*betap*Vnd),  &
+                            matmul(lin_expdiag(-0.5*betap* Vd(:,:)) , (-0.5*betap* dVd(j,:,:)) ) )
             enddo
             return
         elseif(flag .eq. 1) then
@@ -332,6 +334,7 @@ contains
                 do j=1, size(Rs, dim=1)
                     Y(j,:,:) = lin_eye(vdim)
                 enddo
+                
                 do k=1, size(Rs,dim=2)
                     !-- SAVEFORTIME
                     !call Mod_getV(V,Vd,Vnd,Rs(:,k),iflag=0)
@@ -347,29 +350,26 @@ contains
                         do j=1,size(Rs,dim=1)
                             tmp = matmul( transpose(dOdR(j,:,:)), O) + matmul(transpose(O), dOdR(j,:,:))
                             Y(j,:,:) = matmul(Y(j,:,:), tmp )
-                        enddo                  
+                        enddo                 
                     else
                         do j=1,size(Rs,dim=1)
                             Y(j,:,:) = matmul(Y(j,:,:), OO )
                         enddo
                     endif
-                enddo
-                
+                enddo               
                 do j=1,size(Rs,dim=1)
                     pR(j) = lin_trace(Y(j,:,:))
                     term = term + (Rs(j,i) - Rc(j)) * pR(j)
-                enddo
-                
+                enddo         
             enddo
             kvir = 0.5_8/(nbead*betap) * ( real(size(Rs,dim=1)) * update_pff - term/update_pfd )
         endif
-        return
     end subroutine Mod_esti_K
     
     
     subroutine Mod_esti_theta(Rs)
     implicit none
-        real(8), dimension(rdim, vdim), intent(in) :: Rs
+        real(8), dimension(rdim, nbead), intent(in) :: Rs !#XXX fix bug --> rank definition error
         real(8), dimension(vdim,vdim) :: O, OO, Y1, Y2, Y3, Y4, RpR, Vd, Vnd, EVd, EVnd, V_all
         real(8), dimension(rdim,vdim,vdim) :: dV_all, dOdR, dTdR
         real(8) :: T1, T2, T3, T4
@@ -381,6 +381,7 @@ contains
         T3 = 0.0
         T4 = 0.0
         Rc = sum(Rs,dim=2) / nbead
+        
         do j=1,nbead
             do k=1,nbead                    !-- from k=j, if k==j, calc Y2, else calc Y1, then note Y1 we count double times !!
                 Y1 = lin_eye(vdim)
@@ -393,7 +394,7 @@ contains
                     EVd = lin_expdiag(-0.5*betap*Vd)
                     EVnd = (lin_eye(vdim) - 0.5*betap*Vnd)
                     O = matmul( EVnd, EVd )
-                    OO = matmul(transpose(O), O)
+                    OO = matmul(transpose(O), O)                    
                     
                     if(i/=j .and. i/=k .and. j/=k) then
                         Y1 = matmul(Y1, OO)
@@ -424,7 +425,7 @@ contains
                     else !--(i.eq.j .and. i.eq.k)
                         V_all = Vd + Vnd
                         dV_all = Mod_dVd(:,i,:,:) + Mod_dVnd(:,i,:,:)
-                        Y2 = matmul(Y2, matmul( transpose(O), matmul(V_all*V_all, O) ) )
+                        Y2 = matmul(Y2, matmul( transpose(O), matmul(matmul(V_all,V_all), O) ) )
                         !--
                         call Mod_getOpR(dOdR, Rs(:,i), iframe=i, iflag=0)
                         do m=1,size(Rs,dim=1)
@@ -605,23 +606,26 @@ contains
         !-- setting the system parameters
         !-- data ref. [66] M. H. Cho, H. M. Vaswani, T. Brixner, J. stenger, and G. R. Fleming
         !------ J. Phys. Chem. B 109(21), 10542-10556(2005)
-        data ((HFMO(i,j),j=1,7),i=1,7) / 0., -62., 17., 8., -1., -9., 28., &
-                                        -62., 175., -57., -5., -70., -19., 6., &
-                                        17., -57., 260., -4., -2., 32., 1., &
-                                        8., -5., -4., 280., 6., -8., -106., &
-                                        -1., -70., -2., 6., 320., 40., 2., &
-                                        -9., -19., 32., -8., 40., 360., 13., &
-                                        28., 6., 1., -106., 2., 13., 420. /
+        data ((HFMO(i,j),j=1,7),i=1,7) &
+                        / 0._8, -62._8, 17._8, 8._8, -1._8, -9._8, 28._8, &
+                        -62._8, 175._8, -57._8, -5._8, -70._8, -19._8, 6._8, &
+                        17._8, -57._8, 260._8, -4._8, -2._8, 32._8, 1._8, &
+                        8._8, -5._8, -4._8, 280._8, 6._8, -8._8, -106._8, &
+                        -1._8, -70._8, -2._8, 6._8, 320._8, 40._8, 2._8, &
+                        -9._8, -19._8, 32._8, -8._8, 40._8, 360._8, 13._8, &
+                        28._8, 6._8, 1._8, -106._8, 2._8, 13._8, 420._8 /
         !-- convert to atom unit
         HFMO = HFMO / wn_2_hetree
 
-        data ((RFMO(i,j),j=1,7),i=1,7) / 0., 224., 157., 122., 99., 93., 94., &
-                                        224., 0., 102., 67., 65., 66., 72., &
-                                        157., 102., 0., 34., 48., 54., 65., &
-                                        112., 67., 34., 0., 62., 65., 76., &
-                                        99., 65., 48., 62., 0., 69., 84., &
-                                        93., 66., 54., 65., 69., 0., 100., &
-                                        94., 72., 65., 76., 84., 100., 0. /
+        data ((RFMO(i,j),j=1,7),i=1,7) &
+                        / 0._8, 224._8, 157._8, 122._8, 99._8, 93._8, 94._8, &
+                        224._8, 0._8, 102._8, 67._8, 65._8, 66._8, 72._8, &
+                        157._8, 102._8, 0._8, 34._8, 48._8, 54._8, 65._8, &
+                        112._8, 67._8, 34._8, 0._8, 62._8, 65._8, 76._8, &
+                        99._8, 65._8, 48._8, 62._8, 0._8, 69._8, 84._8, &
+                        93._8, 66._8, 54._8, 65._8, 69._8, 0._8, 100._8, &
+                        94._8, 72._8, 65._8, 76._8, 84._8, 100._8, 0._8 /
+    
         !-- initialize parameters
         Mod_M(1) = 1.0
         do i=1,vdim
@@ -634,11 +638,11 @@ contains
                 Mod_R(j,i) = RFMO(i,j)
             enddo
         enddo
-        Mod_D(1,:)   = (/7.28e-2, 7.17e-2, 7.06e-2, 6.95e-2, 6.84e-2, 6.73e-2, 6.62e-2/)
-        Mod_W(1,:)   = (/212.2, 209.0, 205.8, 202.7, 199.5, 196.3, 193.1/) / wn_2_hetree
-        Mod_Req(1,:) = (/0., 5., 10., 15., 20., 25., 30./)
-        Mod_a1 = 5.0e-5
-        Mod_a2 = 0.02
+        Mod_D(1,:)   = (/7.28e-2_8, 7.17e-2_8, 7.06e-2_8, 6.95e-2_8, 6.84e-2_8, 6.73e-2_8, 6.62e-2_8/)
+        Mod_W(1,:)   = (/212.2_8, 209.0_8, 205.8_8, 202.7_8, 199.5_8, 196.3_8, 193.1_8/) / wn_2_hetree
+        Mod_Req(1,:) = (/0.0_8, 5.0_8, 10.0_8, 15.0_8, 20.0_8, 25.0_8, 30.0_8/)        
+        Mod_a1 = 5.0e-5_8
+        Mod_a2 = 0.02_8
     end subroutine init_ES7_morse
 
     subroutine Mod1_getV(V, Vd, Vnd, R, iflag)
@@ -654,10 +658,10 @@ contains
             flag = 0 !-- default value
         endif
         !-- calculation MES-PES
-        Vd  = 0.0
-        Vnd = 0.0
+        Vd  = 0.0_8
+        Vnd = 0.0_8
         do i=1,vdim
-            V(i,i) = Mod_D(1,i)*(1.0-dexp(-dsqrt(0.5*Mod_M(1)*Mod_W(1,i)**2/Mod_D(1,i))*(R(1)-Mod_Req(1,i))) )**2 &
+            V(i,i) = Mod_D(1,i)*(1.0_8-dexp(-dsqrt(0.5_8*Mod_M(1)*Mod_W(1,i)**2/Mod_D(1,i))*(R(1)-Mod_Req(1,i))) )**2 &
                 + Mod_V0(i)
             Vd(i,i)=V(i,i)
             if(flag .eq. 1) cycle !-- flag==1, then only calculate diagonal term
@@ -690,15 +694,16 @@ contains
                 eterm = dexp(-dsqrt(0.5*Mod_M(1)*Mod_W(1,i)**2/Mod_D(1,i))*(R(1)-Mod_Req(1,i)))
                 dV(j,i,i) = (1.0-eterm) * eterm * dsqrt(2.0 *Mod_M(1)*Mod_W(1,i)**2 * Mod_D(1,i))
                 dVd(j,i,i) = dV(j,i,i) 
-            enddo
-            if (flag.eq. 1) cycle!-- flag==1, only give the dv_diangonal term
-            do k=i+1, vdim
-                dV(j,i,k) = - Mod_C(i,k) * dexp( - Mod_a1*(R(1)-Mod_R(i,k))**2 ) * &
-                    ( ( 2.0*Mod_a1*(R(1)-Mod_R(i,k)) )* dcos(Mod_a2*(R(1)-Mod_R(i,k))) & !----------------------------------------
-                    + dsin(Mod_a2*(R(1)-Mod_R(i,k))) * Mod_a2 )
-                dV(j,k,i) = dV(j,i,k)
-                dVnd(j,i,k) = dV(j,i,k)
-                dVnd(j,k,i) = dV(j,i,k)
+            
+                if (flag.eq. 1) cycle!-- flag==1, only give the dv_diangonal term
+                do k=i+1, vdim
+                    dV(j,i,k) = - Mod_C(i,k) * dexp( - Mod_a1*(R(1)-Mod_R(i,k))**2 ) * &
+                        ( ( 2.0*Mod_a1*(R(1)-Mod_R(i,k)) )* dcos(Mod_a2*(R(1)-Mod_R(i,k))) & !----------------------------------------
+                        + dsin(Mod_a2*(R(1)-Mod_R(i,k))) * Mod_a2 )
+                    dV(j,k,i) = dV(j,i,k)
+                    dVnd(j,i,k) = dV(j,i,k)
+                    dVnd(j,k,i) = dV(j,i,k)
+                enddo
             enddo
         enddo
     end subroutine Mod1_getdV

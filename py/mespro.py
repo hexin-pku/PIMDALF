@@ -8,24 +8,17 @@ import os
 import loadfile as lf
 
 narg = len(sys.argv)
-if(narg!=2):
+if(narg!=4):
     print("mesprocess arguments number error, only recieved for 1 argument!") 
 a = pd.read_csv(str(sys.argv[1])+'.ana', header=None, sep='\s+')
 a = a.values.T
 
-if os.path.isfile('./put.rc'):
-    myinfo = lf.Load('put.rc')
-else:
-    print('Warning: put.rc is need in current dir! Stop the py processing')
-    exit()
-
 print("The processing ID is %s"%sys.argv[1])
-print("The parameter lists as:")
-myinfo.Show()
 
-beta =  myinfo.args['beta']
-nfree = myinfo.args['nfree']
-nbead = myinfo.args['nbead']
+
+beta =  4511.066
+nfree = 1
+nbead = 32
     
 pfd = a[1,:]
 pff = a[2,:]

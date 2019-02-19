@@ -85,11 +85,11 @@ end subroutine update_p
 !-- flag = 2 : andersen thermostat
 !-- flag = 3 : nose-hoover chain
 subroutine update_t(dt)
-use random
+use random, tmp_rand => rand_u
 implicit none
     real(8), intent(in) :: dt
     integer :: i, j
-    real(8) :: et, c1, c2p, tmp_rand
+    real(8) :: et, c1, c2p
     
     !-- NVE ensemble
     if(thermo_flg .eq. 0) return
@@ -104,13 +104,13 @@ implicit none
                 return
             !-- Langevin
             case (1)
-                call random_normal(et)
+                call random_norm(et)
                 ptr_p1(j,i) = c1 * ptr_p1(j,i) + c2p * sqrt( ptr_m1(j,i) / beta ) * et
             !-- Andersen
             case (2)
                 call random_number(tmp_rand)
                 if ( tmp_rand < 1. - c1 ) then
-                    call random_normal(et)
+                    call random_norm(et)
                     ptr_p1(j,i) = sqrt( ptr_m1(j,i) / beta ) * et
                 endif
             !-- NHC
@@ -172,7 +172,7 @@ implicit none
             ptr_f1 = 0.0; ptr_f2 = 0.0
             do j=1, ndof
                 do i=1, nbead
-                    call random_normal(ptr_p1(j,i))
+                    call random_norm(ptr_p1(j,i))
                     ptr_p1(j,i) = ptr_p1(j,i) * sqrt( ptr_m1(j,i) / beta )
                 enddo
             enddo

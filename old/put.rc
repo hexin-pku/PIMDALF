@@ -1,10 +1,10 @@
 beta	4511.066
 dtime	100
-nstep	100000
+nstep	10
 sstep	1
 ithermo	1      
 ischeme	0     
 nfree	1
-nbead	64
+nbead	4
 coeff	0.001
 cfreq	0

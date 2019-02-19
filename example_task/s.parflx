@@ -1,0 +1,8 @@
+ parmN  5000
+ parmNs  1
+ parmdt  100
+ beta  4511.066
+ bead  16
+ thermo_gamma  0.001
+ scheme_flg  0
+ thermo_flg  1

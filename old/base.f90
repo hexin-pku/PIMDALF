@@ -5,8 +5,8 @@
 module base
 implicit none
     !-- constant numbers
-    real(8), parameter :: pi = 3.14159265358979323846
-    real(8), parameter :: e = 2.718281828459045
+    real(8), parameter :: pi = 3.14159265358979323846_8
+    real(8), parameter :: e = 2.718281828459045_8
     real(8), parameter :: hb = 1.054571726E-19
     real(8), parameter :: kb = 1.38064852E-23
     !-- atom
@@ -21,7 +21,7 @@ implicit none
     real(8), parameter :: au_temp = 3.157746455E+5
     real(8), parameter :: au_kb = 1.00000000000
     real(8), parameter :: au_beta = 3.166815367E-6
-    real(8), parameter :: wn_2_hetree = 219474.6313702
+    real(8), parameter :: wn_2_hetree = 219474.6313702_8
 contains
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 !-- for random number's generation

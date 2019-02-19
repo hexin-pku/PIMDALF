@@ -7,9 +7,18 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import sys
 import os
-import loadfile as lf
 
 # get arguments from terminal
+# argv[0]: histo.py
+# argv[1]: filename
+# argv[2]: column-idx
+
+# atgv[n]: tag values
+#--------:
+#   xlim : 0:2
+#   ylim : 0:1
+#   xlabel :
+
 narg=len(sys.argv)-1
 fflg=str(sys.argv[1]) # the filename to plot
 clmn=int(sys.argv[2]) # the column to plot
@@ -17,21 +26,8 @@ clmn=int(sys.argv[2]) # the column to plot
 # load configuration file
 icwd=os.getcwd()
 print('current working directory is %s\n'%icwd)
-if os.path.isfile('./put.rc'):
-    myinfo = lf.Load('put.rc')
-else:
-    print('Warning: put.rc is need in current dir!')
-    exit()
-if os.path.isfile('./histo.rc'):
-    myinfo.Add('histo.rc')
-else:
-    print('Warning: histo.rc is need in current dir!')
-    exit()
-if os.path.isfile('./info.now'):
-    myinfo.Add('info.now')
-else:
-    print('Warning: info.now is need in current dir!')
-    exit()
+
+
 
 # read the data file
 if not os.path.isfile(fflg):
