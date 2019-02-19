@@ -1,13 +1,15 @@
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 !-- main program
+!-- (Copyright) Xin He <1500011805@pku.edu.cn>)
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-program main
+
+program mes_main
 use random
 use myobj
 use pisimul
 use mes7_smors
 use MES_Models
-use pimd
+use mes_pimd
 implicit none
     character(len=32) :: traj_file, anlys_file, start_file, parms_file
     character(len=32) :: arg1, arg2
@@ -87,4 +89,7 @@ implicit none
     call del_box2d(box1)
     call del_box2d(box2)
     call del_mes()
-end program main
+
+end program mes_main
+
+

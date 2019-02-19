@@ -6,7 +6,7 @@
 module pimd
 use const
 use pisimul, dtime=>parmdt, nstep=>parmN, sstep=>parmNs, nbead=>parmP, beta=>parmB
-use mes7_smors, only: ndof, M ! you can revise here #TODO
+use def_model, only: ndof, M ! you can revise here #TODO
 implicit none
     real(8), dimension(:,:), pointer :: ptr_x1
     real(8), dimension(:,:), pointer :: ptr_p1
@@ -23,13 +23,13 @@ implicit none
 contains
 
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-!-- force field loader, <ref MES_Models>
+!-- force field loader
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 subroutine update_fx()
-use MES_Models, only: esti_dV
+use def_model, only: get_dV => model_dV
 implicit none
     !-- give mes-force of a configuration
-    call esti_dV(ptr_f2(:,:), ptr_x2(:,:))
+    call get_dV(ptr_f2(:,:), ptr_x2(:,:))
 end subroutine update_fx
 
 
@@ -273,35 +273,11 @@ end subroutine pimd_process
 !-- estimator procedure
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 subroutine estimator()
-use MES_Models
-implicit none
+implicit none !#TODO
     real(8) :: temp1, temp2, temp3
     
     !-- FOR HO MODEL
-    !pimd_estimators(3) = 0.5*sum(ptr_x*ptr_x) /real(nbead)
-    !return
-    !----------------------------------------------------
-    
-    pimd_estimators(1) = save_pfd     !-- estimate pfd
-    call esti_pfr(temp1, ptr_x2)
-    pimd_estimators(2) = save_pfr          !-- estimate pff
-    !--
-    call esti_V(temp1, ptr_x2)
-    pimd_estimators(3) = temp1               !-- estimate V
-    !--
-    call esti_K(temp2, temp3, ptr_x2, iflag=1)
-    pimd_estimators(4) = temp2               !-- estimate Kprim
-    pimd_estimators(5) = temp3               !-- estimate Kvir
-    pimd_estimators(6) = pimd_estimators(3) + temp2 !-- estimate Eprim
-    pimd_estimators(7) = pimd_estimators(3) + temp3 !-- estmate Evir
-    !--
-    call esti_coh(temp1)           
-    pimd_estimators(8) = save_coh          !-- estimate Lcohenren
-    !--
-    call esti_theta(ptr_x2)
-    pimd_estimators(9:12) = save_theta(1:4)
-    
-    call mes_setlevel(0)
+    return
 end subroutine estimator
 
 

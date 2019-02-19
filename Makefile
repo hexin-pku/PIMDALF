@@ -1,19 +1,32 @@
-utils=const.f90 random.f90 linalgebra.f90 myobj.f90
-model=mes7smors.f90
+FC = gfortran
 
-SRC1=${utils} pisimul.f90 ${model} MES_Models_dia.f90 staging.f90 md_pimd.f90 mespimd.f90
-SRC2=${utils} pisimul.f90 ${model} MES_Models_adia.f90 staging.f90 md_pimd.f90 mespimd.f90
+COMMON_DIR = common
+MODEL_DIR = model
+BIN_DIR = bin
 
-EXE=mespimd
-LIB=-llapack
+.PHONY:all
+all: build_common build_model build_pimd build_mespimd
+	cp bin/* ./
 
-dia:
-	gfortran $(SRC1) $(LIB) -o $(EXE).dia.run
-adia:
-	gfortran $(SRC2) $(LIB) -o $(EXE).adia.run
-test:
-	./mespimd -p s.par -s e -o 0
-lin:
-	gfortran const.f90 random.f90 linalgebra.f90 latest.f90  $(LIB) -o lintest
+build_common:
+	$(MAKE) -C common
+	
+build_model:
+	$(MAKE) -C model
+	
+build_pimd: 
+	$(MAKE) -C pimd
+
+build_mespimd:
+	$(MAKE) -C mespimd
+	
+.PHONY:clean cleanobj
 clean:
-	rm *.mod
+	$(MAKE) -C common clean
+	$(MAKE) -C model clean
+	$(MAKE) -C pimd clean
+	$(MAKE) -C mespimd clean
+	-rm *.mod *.o
+cleanobj:
+	-rm *.mod
+	-rm mespimd.dia.run mespimd.adia.run bin/*
