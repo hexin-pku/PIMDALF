@@ -11,7 +11,7 @@ mespimd.adia.run: is the adiabatic version for mes-pimd
     mespimd.xxx.run -p parameter_file \
     -s [0|1|e|r|f]  \
     -f restart_configuration_file \
-    -o output\_name
+    -o output_name
 ```
 
 the parameter file with format like  
@@ -27,7 +27,7 @@ the parameter file with format like
 ```
 
 ## Scripts  
-some bash and python scripts can be found in `example\_task`,
+some bash and python scripts can be found in `example_task`,
 can give statistics result of the analyzation files.  
 
 ## Acknowledgement  
