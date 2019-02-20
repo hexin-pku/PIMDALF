@@ -37,7 +37,7 @@ end subroutine update_fx
 !-- x updating procedure
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 subroutine update_x(dt)
-use staging
+use trans_plus
 implicit none
     real(8), intent(in) :: dt
     integer :: i, j
@@ -127,7 +127,7 @@ end subroutine update_t
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 subroutine instructor(ibox1, ibox2, ifile, iflag)
 use random
-use staging
+use trans_plus
 use myobj
 implicit none
     type(box2d), intent(inout) :: ibox1, ibox2
@@ -137,7 +137,7 @@ implicit none
     real(8), dimension(8) :: readline8
 
     !-- creat box object and assign pointer to box object
-    !-- box1: staging  system, box2: primtive system
+    !-- box1: trans_plus  system, box2: primtive system
     call init_box2d(ibox1, ndof, nbead)
     call init_box2d(ibox2, ndof, nbead)
     ptr_x1 => ibox1%x

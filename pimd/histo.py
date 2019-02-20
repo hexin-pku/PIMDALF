@@ -68,6 +68,8 @@ else:
     pass
 y=y[0]
 
+ymean = y.mean()
+print(ymean)
 
 plt.hist(y,bins=200,normed=True, histtype='step')
 
