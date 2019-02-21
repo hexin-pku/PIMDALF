@@ -18,65 +18,11 @@
 !               0 -- v; 1 -- v,dv; 2 -- v,dv,ddv
 !--------------------------------------------------------------------------
 !       Here thanks Zhijun Zhang's help
-!       revised the h2opot to model_V2, consistent with the codes
 !--------------------------------------------------------------------------
-module model
-    integer, parameter :: ndof = 9
-    !-- [a. u.]
-    real(8), dimension(9), parameter :: M = (/ 1836.0, 1836.0, 1836.0, &
-                                               29376.0, 29376.0, 29376.0,&
-                                               1836.0, 1836.0, 1836.0 /)
-    real(8), parameter:: equi_geom(3) = (/1.81_8,1.81_8,1.8239_8/) !-- r1, r2, theta
-
+module h2opes
 contains
-subroutine vec_rearrange(vec, mat)
-   real(8), dimension(3,3) :: mat
-   real(8), dimension(9) :: vec
-   vec(1:3) = mat(1,:)
-   vec(4:6) = mat(2,:)
-   vec(7:9) = mat(3,:)
-end subroutine vec_rearrange
-
-subroutine mat_rearrange(mat, vec)
-   real(8), dimension(3,3) :: mat
-   real(8), dimension(9) :: vec
-   mat(1,:) = vec(1:3)
-   mat(2,:) = vec(4:6)
-   mat(3,:) = vec(7:9)
-end subroutine mat_rearrange
-
-subroutine vec2_rearrange(vec, mat)
-   real(8), dimension(3,3,3,3) :: mat
-   real(8), dimension(9,9) :: vec
-   vec(1:3, 1:3) = mat(1,:,1,:)
-   vec(1:3, 4:6) = mat(1,:,2,:)
-   vec(1:3, 7:9) = mat(1,:,3,:)
-   vec(4:6, 1:3) = mat(2,:,1,:)
-   vec(4:6, 4:6) = mat(2,:,2,:)
-   vec(4:6, 7:9) = mat(2,:,3,:)
-   vec(7:9, 1:3) = mat(3,:,1,:)
-   vec(7:9, 4:6) = mat(3,:,2,:)
-   vec(7:9, 7:9) = mat(3,:,3,:)
-end subroutine vec2_rearrange
-
-subroutine mat2_rearrange(mat, vec)
-   real(8), dimension(3,3,3,3) :: mat
-   real(8), dimension(9,9) :: vec
-   mat(1,:,1,:) = vec(1:3, 1:3)
-   mat(1,:,2,:) = vec(1:3, 4:6)
-   mat(1,:,3,:) = vec(1:3, 7:9) 
-   mat(2,:,1,:) = vec(4:6, 1:3) 
-   mat(2,:,2,:) = vec(4:6, 4:6) 
-   mat(2,:,3,:) = vec(4:6, 7:9) 
-   mat(3,:,1,:) = vec(7:9, 1:3)
-   mat(3,:,2,:) = vec(7:9, 4:6) 
-   mat(3,:,3,:) = vec(7:9, 7:9)
-end subroutine mat2_rearrange
-
-subroutine model_V2(v, dv_ori, ddv_ori, cart_ori, flag)
+subroutine h2opot(v,dv,ddv,cart,flag)
    implicit none
-   real(8), dimension(9) :: dv_ori, cart_ori
-   real(8), dimension(9,9) :: ddv_ori
    real(8) :: v
    real(8), dimension(3,3) :: dv
    real(8), dimension(3,3,3,3) :: ddv
@@ -539,10 +485,7 @@ subroutine model_V2(v, dv_ori, ddv_ori, cart_ori, flag)
       alphaoh=alphaoh*0.529177249d0
       c5z(1)=c5z(1)*2d0
    end if
-   
-   ! convert from vector to matrix
-   call mat_rearrange(cart, cart_ori)
-   
+
    ! convert cartesian coordinates to geometry (r1, r2, cos(theta), rhh)
    call convert_cart_to_geom(roh1, roh2, cost, rhh, &
       dr_dc, ddr_dcdc, cart, flag)
@@ -816,9 +759,6 @@ subroutine model_V2(v, dv_ori, ddv_ori, cart_ori, flag)
          end do ! end of calculate ddv loop
       end if ! end of if calculate ddv 
    end if  ! end of if calculate dv
-   !-- then do vectorizarion
-   call vec_rearrange(dv_ori, dv)
-   call vec2_rearrange(ddv_ori, ddv)
    return
 end subroutine 
 
@@ -1129,4 +1069,4 @@ subroutine convert_geom_to_cart(cart,geom)
    return
 end subroutine
 
-end module model
+end module h2opes

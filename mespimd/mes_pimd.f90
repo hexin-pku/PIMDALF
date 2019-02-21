@@ -115,7 +115,7 @@ implicit none
                 endif
             !-- NHC
             case (3)
-                stop "refer to NHC module"
+                stop "MES-PIMD not support NHC yet, you can revised it easily"
             endselect
         enddo
     enddo

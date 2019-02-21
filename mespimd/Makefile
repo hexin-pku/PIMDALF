@@ -14,7 +14,7 @@ INC = -I./${COMMON_DIR} -I./$(MODEL_DIR) -I./$(PIMD_DIR)
 COMMON_SRCS = $(wildcard $(COMMON_DIR)/*.f90)
 COMMON_OBJS = $(addprefix $(COMMON_DIR)/,$(patsubst %.f90,%.o,$(notdir $(COMMON_SRCS))))
 
-PIMD_SRCS = $(wildcard $(PIMD_DIR)/*.f90)
+PIMD_SRCS = pisimul.f90 myobj.f90 trans_plus.f90 nhc_plus_pimd.f90
 PIMD_OBJS = $(addprefix $(PIMD_DIR)/,$(patsubst %.f90,%.o,$(notdir $(PIMD_SRCS))))
 
 SRC_DIA = MES_Models_dia.f90 mes_pimd.f90 mes_main.f90

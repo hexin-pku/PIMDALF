@@ -26,13 +26,13 @@ contains
 !-- force field loader
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 subroutine update_fx()
-use model, only: V1 => model_V1
+use model, only: V2 => model_V2
 implicit none
-    real(dp) :: v
+    real(dp) :: v, ddv(ndof, ndof)
     integer :: i
     do i=1,nbead
         !-- give mes-force of a configuration
-        call V1(v, ptr_f2(:,i), ptr_x2(:,i), 1)
+        call V2(v, ptr_f2(:,i), ddv, ptr_x2(:,i), 1)
     enddo
 end subroutine update_fx
 
@@ -286,7 +286,7 @@ end subroutine pimd_process
 !-- estimator procedure
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 subroutine estimator()
-use model, V0 => model_V0
+use model, V2 => model_V2
 implicit none !#TODO
     real(dp), allocatable :: dv(:), ddv(:,:), Xc(:)
     real(dp) :: v, Vtot, Kprim, Kvir
@@ -304,7 +304,7 @@ implicit none !#TODO
     !-- stop 'debug'
     
     do i=1,nbead
-        call V0(v, ptr_x2(:,i))
+        call V2(v, dv, ddv, ptr_x2(:,i), 0)
         Vtot = Vtot + v
     enddo
     do i=1,ndof

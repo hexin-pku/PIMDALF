@@ -7,7 +7,7 @@
 !-- Nose Hoover Chain Thermostat with RESPA-alg.
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-module nhc_plus
+module nhc_plus_pimd
 use const
 implicit none
 private
@@ -200,7 +200,7 @@ end subroutine thermo_NHC
 !    end do
 !end subroutine thermo_NHC2
 
-end module nhc_plus
+end module nhc_plus_pimd
 
 
 

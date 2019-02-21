@@ -1,0 +1,9 @@
+3.8
+4.85
+8.2
+2.55
+
+! These values ensure that ~50% of the
+! MonteCarlo moves are accepted given
+! 1) c = 0.1 for all c
+! 2) Width_nuc = 0.25; Width_el = 1.0
